@@ -5,7 +5,14 @@
 
 class ledlight : public light , public observer {
 public:
-ledlight();
+string name;
+ ledlight(const std::string& name) {
+        this->name = name;
+    }
+std::string getName() const override {
+    return name;
+}
+
 int brightness = 0;
 std::string status = "OFF";
 std::string get_status() override;

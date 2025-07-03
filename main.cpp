@@ -12,56 +12,52 @@
 #include "commands/commandmanager.h"
 #include "commands/turnoncommand.h"
 using namespace std;
-int main (){
- smarthub hub;
- auto light1= make_shared<ledlight>();
- auto thermostate= make_shared<thermostat>();
- auto camera=make_shared<secuirtycamera>();
- string l="light1";
-hub.register_device(l,light1);
- string l2="thermo1";
-hub.register_device(l2,thermostate);
- string l3="camera1";
-hub.register_device(l3,camera);
-std::cout<<"device ststus after registeration"<<"\n";
-cout<<light1->get_status()<<"\n";
-cout<<thermostate->get_status()<<"\n";
-cout<<camera->get_status()<<"\n";
-    // Apply Comfort Mode
-    std::cout << "\n Applying Comfort Mode ---\n";
-    hub.setautomationmode(std::make_shared<comformode>());
+
+int main() {
+    std::cout << "Smart Home Automation System Started\n\n";
+
+    smarthub hub;
+
+    std::cout << "Registering devices...\n";
+
+    auto livingRoomLight = std::make_shared<ledlight>("LivingRoomLight");
+    auto livingRoomThermostat = std::make_shared<thermostat>("LivingRoomThermostat");
+    auto hallwaySensor = std::make_shared<motionsensor>("HallwaySensor");
+    auto frontDoorCamera = std::make_shared<secuirtycamera>("FrontDoorCamera");
+     std::string s="LivingRoom";
+    hub.register_device(s, livingRoomLight);
+    std::cout << "-> LivingRoomLight registered to group: LivingRoom\n";
+
+    hub.register_device(s, livingRoomThermostat);
+    std::cout << "-> LivingRoomThermostat registered to group: LivingRoom\n";
+    std::string s3="Hallway";
+    hub.register_device(s3, hallwaySensor);
+    std::cout << "-> HallwaySensor registered to group: Hallway\n";
+    std::string s2="Security";
+    hub.register_device(s2, frontDoorCamera);
+    std::cout << "-> FrontDoorCamera registered to group: Security\n";
+
+    std::cout << "\nListing all registered devices:\n";
+    for (auto& device : hub.getalldevices()) {
+        std::cout << "- Device: " << device->getName() << "\n";
+    }
+
+    std::cout << "\nSetting automation mode: Comfort Mode\n";
+    auto comfort = std::make_shared<comformode>();
+    hub.setautomationmode(comfort);
     hub.applycurrentmode();
 
-    std::cout << light1->get_status() << "\n";
-    std::cout << thermostate->get_status() << "\n";
+    std::cout << "\nSimulating motion in Hallway...\n";
+    hallwaySensor->attach(livingRoomLight);  // Automatically turn on light on motion
 
-    // ✅ Test Command Pattern + Undo
-    commandmanager manager;
-    auto lightOn = std::make_shared<turnoncommand>(light1);
+    std::cout << "\nSending command: Turn OFF all lights in Living Room\n";
+    commandmanager commandManager;
+    auto turnon = std::make_shared<turnoncommand>(livingRoomLight);
+    commandManager.executecommand(turnon);
 
-    std::cout << "\n Using Command Pattern ---\n";
-    manager.executecommand(lightOn);
-    std::cout << light1->get_status() << "\n";
+    std::cout << "\nUndoing last command...\n";
+    commandManager.undolast();
 
-    std::cout << "\nUndo Last Command ---\n";
-    manager.undolast();
-    std::cout << light1->get_status() << "\n";
-
-    // ✅ Motion Sensor triggers light
-    std::cout << "\n-Motion Detected ---\n";
-    auto motion = std::make_shared<motionsensor>();
-    motion->attach(light1);
-    motion->notify("Motion detected");
-    std::cout << light1->get_status() << "\n";
-
-
-
-    // ✅ Energy Saving Mode
-    std::cout << "\n Applying Energy Saving Mode ---\n";
-    hub.setautomationmode(std::make_shared<energysavingmode>());
-    hub.applycurrentmode();
-    std::cout << light1->get_status() << "\n";
-    std::cout << thermostate->get_status() << "\n";
-
+    std::cout << "\nSystem shutting down.\n";
     return 0;
 }

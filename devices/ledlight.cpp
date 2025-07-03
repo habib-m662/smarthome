@@ -1,10 +1,6 @@
 #include"ledlight.h"
 #include<string>
 #include<iostream>
-ledlight::ledlight() : light() {
-    status = "OFF";
-    brightness = 100; // Set a default brightness
-}
 
  void ledlight::update(const std::string & event){
     if(event=="Motion detected"){
